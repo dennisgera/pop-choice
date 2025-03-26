@@ -4,14 +4,27 @@ import Card from "./Card";
 import { getMovieRecommendation } from "../services/movieService";
 import type { Movie } from "../services/openaiService";
 import Question from "./Question";
+
 interface MovieQuestionnaireProp {
   onComplete: (result: Movie) => void;
+  numberOfPeople: number;
+  timeAvailable: string;
+  onBack: () => void;
 }
 
 export default function MovieQuestionnaire({
   onComplete,
+  numberOfPeople,
+  timeAvailable,
+  onBack,
 }: MovieQuestionnaireProp) {
-  const [answers, setAnswers] = useState<Record<string, string>>({});
+  const [currentPerson, setCurrentPerson] = useState(1);
+  const [allAnswers, setAllAnswers] = useState<
+    Record<number, Record<string, string>>
+  >({});
+  const [currentAnswers, setCurrentAnswers] = useState<Record<string, string>>(
+    {}
+  );
 
   const questions = [
     {
@@ -32,15 +45,65 @@ export default function MovieQuestionnaire({
   ];
 
   const handleAnswerChange = (questionId: string, value: string) => {
-    setAnswers((prev) => ({
+    setCurrentAnswers((prev) => ({
       ...prev,
       [questionId]: value,
     }));
   };
 
+  const handleNextPerson = () => {
+    if (currentPerson < numberOfPeople) {
+      setAllAnswers((prev) => ({
+        ...prev,
+        [currentPerson]: currentAnswers,
+      }));
+      setCurrentPerson((prev) => prev + 1);
+      setCurrentAnswers({});
+    }
+  };
+
+  const handleBack = () => {
+    if (currentPerson > 1) {
+      setAllAnswers((prev) => ({
+        ...prev,
+        [currentPerson]: currentAnswers,
+      }));
+      setCurrentPerson((prev) => prev - 1);
+      setCurrentAnswers(allAnswers[currentPerson - 1] || {});
+    } else {
+      onBack();
+    }
+  };
+
   const handleSubmit = async () => {
     try {
-      const result = await getMovieRecommendation(answers);
+      const finalAnswers = {
+        ...allAnswers,
+        [currentPerson]: currentAnswers,
+      };
+
+      // Combine all answers into a single string for the API
+      const combinedAnswers = Object.entries(finalAnswers).reduce(
+        (acc, [person, answers]) => {
+          return {
+            ...acc,
+            ...Object.entries(answers).reduce(
+              (personAcc, [key, value]) => ({
+                ...personAcc,
+                [`${key}_person${String(person)}`]: value,
+              }),
+              {}
+            ),
+          };
+        },
+        {}
+      );
+
+      const result = await getMovieRecommendation({
+        ...combinedAnswers,
+        numberOfPeople: String(numberOfPeople),
+        timeAvailable,
+      });
       onComplete(result);
     } catch (error) {
       console.error("Failed to get movie recommendation:", error);
@@ -48,7 +111,8 @@ export default function MovieQuestionnaire({
     }
   };
 
-  const isFormComplete = questions.every((q) => answers[q.id]?.trim());
+  const isFormComplete = questions.every((q) => currentAnswers[q.id]?.trim());
+  const isLastPerson = currentPerson === numberOfPeople;
 
   return (
     <Card>
@@ -58,24 +122,37 @@ export default function MovieQuestionnaire({
           <h1 className="text-4xl font-bold text-white ml-4">PopChoice</h1>
         </div>
 
+        <div className="text-center mb-6">
+          <h2 className="text-2xl font-semibold text-white">
+            Person {currentPerson} of {numberOfPeople}
+          </h2>
+        </div>
+
         <div className="space-y-6">
           {questions.map((question) => (
             <Question
               key={question.id}
               question={question.text}
               placeholder={question.placeholder}
-              value={answers[question.id] || ""}
+              value={currentAnswers[question.id] || ""}
               onChange={(value) => handleAnswerChange(question.id, value)}
             />
           ))}
         </div>
-        <div className="flex justify-center">
+        <div className="flex justify-center space-x-4">
           <Button
-            onClick={handleSubmit}
+            onClick={handleBack}
+            variant="secondary"
+            className="w-full max-w-xs text-xl py-3"
+          >
+            Back
+          </Button>
+          <Button
+            onClick={isLastPerson ? handleSubmit : handleNextPerson}
             disabled={!isFormComplete}
             className="w-full max-w-xs text-xl py-3"
           >
-            Let's Go
+            {isLastPerson ? "Let's Go" : "Next Person"}
           </Button>
         </div>
       </div>
