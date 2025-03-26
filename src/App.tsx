@@ -3,14 +3,16 @@ import "./App.css";
 import MovieQuestionnaire from "./components/MovieQuestionnaire";
 import MovieResult from "./components/MovieResult";
 
+interface Movie {
+  title: string;
+  description: string;
+}
+
 function App() {
   const [showResult, setShowResult] = useState(false);
-  const [result, setResult] = useState({ title: "", description: "" });
+  const [result, setResult] = useState<Movie>({ title: "", description: "" });
 
-  const handleComplete = (movieResult: {
-    title: string;
-    description: string;
-  }) => {
+  const handleComplete = (movieResult: Movie) => {
     setResult(movieResult);
     setShowResult(true);
   };
