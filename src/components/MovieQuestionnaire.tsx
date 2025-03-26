@@ -63,7 +63,15 @@ export default function MovieQuestionnaire({
           />
         </div>
 
-        <div className="mt-8 flex justify-center">
+        <div className="mt-8 flex justify-center gap-4">
+          {currentStep > 0 && (
+            <Button
+              onClick={() => setCurrentStep((prev) => prev - 1)}
+              variant="secondary"
+            >
+              Back
+            </Button>
+          )}
           <Button
             onClick={() => {
               if (currentStep === questions.length - 1) {
@@ -72,6 +80,7 @@ export default function MovieQuestionnaire({
                 setCurrentStep((prev) => prev + 1);
               }
             }}
+            disabled={!answers[questions[currentStep].text]}
           >
             {currentStep === questions.length - 1 ? "Let's Go" : "Next"}
           </Button>
