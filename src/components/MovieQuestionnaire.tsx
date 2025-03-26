@@ -30,17 +30,28 @@ export default function MovieQuestionnaire({
     {
       id: "favorite",
       text: "What's your favorite movie and why?",
+      type: "text",
       placeholder: "Type your favorite movie and reason...",
     },
     {
       id: "era",
       text: "Are you in the mood for something new or a classic?",
+      type: "multiple",
+      options: ["New", "Classic"],
       placeholder: "Type your preference...",
     },
     {
       id: "mood",
       text: "Do you wanna have fun or do you want something serious?",
+      type: "multiple",
+      options: ["Fun", "Serious"],
       placeholder: "Type your mood preference...",
+    },
+    {
+      id: "stranded",
+      text: "Which famous film person would you love to be stranded on an island with and why?",
+      type: "text",
+      placeholder: "Type your favorite film person...",
     },
   ];
 
@@ -133,6 +144,8 @@ export default function MovieQuestionnaire({
             <Question
               key={question.id}
               question={question.text}
+              type={question.type}
+              options={question.options}
               placeholder={question.placeholder}
               value={currentAnswers[question.id] || ""}
               onChange={(value) => handleAnswerChange(question.id, value)}

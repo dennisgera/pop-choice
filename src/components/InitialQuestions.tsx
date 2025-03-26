@@ -14,7 +14,7 @@ export default function InitialQuestions({
   onComplete,
 }: InitialQuestionsProps) {
   const [answers, setAnswers] = useState({
-    numberOfPeople: "",
+    numberOfPeople: null as string | null,
     timeAvailable: "",
   });
 
@@ -22,11 +22,13 @@ export default function InitialQuestions({
     {
       id: "numberOfPeople",
       text: "How many people are going to watch the movie?",
+      type: "number",
       placeholder: "Enter number of people...",
     },
     {
       id: "timeAvailable",
       text: "How much time do you have to watch the movie?",
+      type: "text",
       placeholder: "e.g., 2 hours, 90 minutes...",
     },
   ];
@@ -39,7 +41,7 @@ export default function InitialQuestions({
   };
 
   const handleSubmit = () => {
-    const numberOfPeople = parseInt(answers.numberOfPeople);
+    const numberOfPeople = parseInt(answers.numberOfPeople || "");
     if (isNaN(numberOfPeople) || numberOfPeople < 1) {
       alert("Please enter a valid number of people");
       return;
@@ -50,8 +52,9 @@ export default function InitialQuestions({
     });
   };
 
-  const isFormComplete =
-    answers.numberOfPeople.trim() && answers.timeAvailable.trim();
+  const isFormComplete = questions.every((q) =>
+    answers[q.id as keyof typeof answers]?.trim()
+  );
 
   return (
     <Card>
@@ -67,8 +70,9 @@ export default function InitialQuestions({
               key={question.id}
               question={question.text}
               placeholder={question.placeholder}
-              value={answers[question.id as keyof typeof answers] || ""}
+              value={answers[question.id as keyof typeof answers] ?? ""}
               onChange={(value) => handleAnswerChange(question.id, value)}
+              type={question.type}
             />
           ))}
         </div>
