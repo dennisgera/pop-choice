@@ -10,7 +10,6 @@ interface MovieQuestionnaireProp {
 export default function MovieQuestionnaire({
   onComplete,
 }: MovieQuestionnaireProp) {
-  const [currentStep, setCurrentStep] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
 
   const questions = [
@@ -31,10 +30,10 @@ export default function MovieQuestionnaire({
     },
   ];
 
-  const handleAnswerChange = (value: string) => {
+  const handleAnswerChange = (questionId: string, value: string) => {
     setAnswers((prev) => ({
       ...prev,
-      [questions[currentStep].text]: value,
+      [questionId]: value,
     }));
   };
 
@@ -48,41 +47,41 @@ export default function MovieQuestionnaire({
     }
   };
 
+  const isFormComplete = questions.every((q) => answers[q.id]?.trim());
+
   return (
     <div className="max-w-xl mx-auto">
-      <div className="bg-gray-800/50 rounded-xl p-8 shadow-lg">
-        <div className="space-y-6">
-          <h2 className="text-3xl font-semibold text-white text-center">
-            {questions[currentStep].text}
-          </h2>
-          <textarea
-            className="w-full p-4 rounded-lg bg-gray-700/70 text-white placeholder-gray-400 text-lg min-h-[120px] focus:outline-none focus:ring-2 focus:ring-green-400"
-            placeholder={questions[currentStep].placeholder}
-            value={answers[questions[currentStep].text] || ""}
-            onChange={(e) => handleAnswerChange(e.target.value)}
-          />
+      <div className="bg-gray-800/50 rounded-xl p-8 shadow-lg space-y-8">
+        <div className="flex items-center justify-center mb-6">
+          <img src="/popcorn.png" alt="PopChoice" className="w-16 h-16" />
+          <h1 className="text-4xl font-bold text-white ml-4">PopChoice</h1>
         </div>
 
-        <div className="mt-8 flex justify-center gap-4">
-          {currentStep > 0 && (
-            <Button
-              onClick={() => setCurrentStep((prev) => prev - 1)}
-              variant="secondary"
-            >
-              Back
-            </Button>
-          )}
+        <div className="space-y-6">
+          {questions.map((question) => (
+            <div key={question.id} className="space-y-3">
+              <h2 className="text-xl font-semibold text-white">
+                {question.text}
+              </h2>
+              <textarea
+                className="w-full p-4 rounded-lg bg-gray-700/70 text-white placeholder-gray-400 text-lg min-h-[80px] focus:outline-none focus:ring-2 focus:ring-green-400"
+                placeholder={question.placeholder}
+                value={answers[question.id] || ""}
+                onChange={(e) =>
+                  handleAnswerChange(question.id, e.target.value)
+                }
+              />
+            </div>
+          ))}
+        </div>
+
+        <div className="flex justify-center">
           <Button
-            onClick={() => {
-              if (currentStep === questions.length - 1) {
-                handleSubmit();
-              } else {
-                setCurrentStep((prev) => prev + 1);
-              }
-            }}
-            disabled={!answers[questions[currentStep].text]}
+            onClick={handleSubmit}
+            disabled={!isFormComplete}
+            className="w-full max-w-xs text-xl py-3"
           >
-            {currentStep === questions.length - 1 ? "Let's Go" : "Next"}
+            Let's Go
           </Button>
         </div>
       </div>

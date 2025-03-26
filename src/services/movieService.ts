@@ -25,9 +25,9 @@ export const getMovieRecommendation = async (
   userPreferences: Record<string, string>
 ): Promise<Movie> => {
   try {
-    // Create embedding from the last answer
-    const lastAnswer = Object.values(userPreferences).pop() || "";
-    const embedding = await createEmbedding(lastAnswer);
+    // Create embedding from all user answers
+    const allAnswers = Object.values(userPreferences).join(" ");
+    const embedding = await createEmbedding(allAnswers);
 
     // Find matching movies
     const matchingMovies = await findNearestMatch(embedding);
